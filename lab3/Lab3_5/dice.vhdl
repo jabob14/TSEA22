@@ -1,10 +1,10 @@
 -- dice.vhdl
--- Tryckknapp (T0) "roll" rullar tärningen
--- roll=0 : tärningen ligger stilla och visar ett värde
--- roll=1 : tärningen rullar
--- Strömbrytare (S0) "fake" väljer riktig eller falsk tärning
--- fake=0 : riktig tärning, dvs samma sannolikhet för 1,2,3,4,5 och 6
--- fake=1 : falsk tärning, dvs tre gånger högre sannolikhet för 6
+-- Tryckknapp (T0) "roll" rullar tï¿½rningen
+-- roll=0 : tï¿½rningen ligger stilla och visar ett vï¿½rde
+-- roll=1 : tï¿½rningen rullar
+-- Strï¿½mbrytare (S0) "fake" vï¿½ljer riktig eller falsk tï¿½rning
+-- fake=0 : riktig tï¿½rning, dvs samma sannolikhet fï¿½r 1,2,3,4,5 och 6
+-- fake=1 : falsk tï¿½rning, dvs tre gï¿½nger hï¿½gre sannolikhet fï¿½r 6
 -- Typically connect the following at the connector area of DigiMod
 -- sclk <-- 32kHz
 
@@ -25,6 +25,47 @@ end entity;
 
 architecture arch of dice is
   -- signals etc
+  signal seg_sync : std_logic_vector(6 downto 0);
+  signal value : unsigned(3 downto 0) := (others => '0'); -- Rï¿½knarens vï¿½rde
+-- 7-segments avkodning, segments tï¿½nds med 1
 
+
+  type rom is array (0 to 5) of std_logic_vector(6 downto 0);
+  constant mem : rom := (
+    "1111001", -- 1
+    "0100100", -- 2
+    "0110000", -- 3
+    "0011001", -- 4
+    "0010010", -- 5
+    "0000010"  -- 6
+  );
+
+  type rom1 is array (0 to 7) of std_logic_vector(6 downto 0);
+  constant fake_mem : rom1 := (
+    "1111001", -- 1
+    "0100100", -- 2
+    "0110000", -- 3
+    "0011001", -- 4
+    "0010010", -- 5
+    "0000010", -- 6
+    "0000010", -- 6
+    "0000010"  -- 6
+  );
 begin
+  process(clk)
+  begin
+    if rising_edge(clk) then
+      if roll = '1' then
+        value <= value + to_unsigned(1, 4);
+      end if;
+    end if;
+    if fake = '1' then
+        seg_sync <= fake_mem(to_integer(value));
+      elsif fake = '0' then
+        seg_sync <= mem(to_integer(value));
+      end if;
+  end process;
+  seg <= seg_sync;
+  dp  <= '1';  -- Ingen punkt
+  an  <= "1110";  -- Vï¿½lj sista siffran
 end architecture;
