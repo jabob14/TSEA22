@@ -25,6 +25,7 @@ architecture rtl of comb_lock is
   signal q0_plus  : std_logic;
   signal q1_plus  : std_logic;
 begin
+  
 -- Synkronisera Insignaler
   process (clk)
   begin
@@ -46,6 +47,7 @@ begin
       q1_plus <= not(not(not(x1_sync) and x0_sync and q0) and not(x0_sync and q1) and not(x1_sync and q1 and x0_sync));
     end if;
   end process;
+
 -- Utsignaler
   u <= (q1 and q0);
 end architecture;
