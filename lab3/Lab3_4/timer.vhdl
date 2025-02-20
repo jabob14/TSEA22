@@ -25,7 +25,7 @@ architecture rtl of timer is
     -- Synkroniserade insignaler
     signal s_sync    : std_logic;
 
-    signal alarm_sync: std_logic;
+    signal alarm_sync: std_logic := '1';
     signal run   : std_logic;
     signal count : unsigned(3 downto 0) := (others => '0'); -- Räknarens värde
 
