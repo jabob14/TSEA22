@@ -24,11 +24,9 @@ entity dice is
 end entity;
 
 architecture arch of dice is
-  -- signals etc
-  signal seg_sync : std_logic_vector(6 downto 0);
-  signal value : unsigned(3 downto 0) := (others => '0'); -- R�knarens v�rde
--- 7-segments avkodning, segments t�nds med 1
 
+  signal seg_sync: std_logic_vector(6 downto 0) := (others => '0');
+  signal value : unsigned(3 downto 0) := (others => '0');
 
   type rom is array (0 to 5) of std_logic_vector(6 downto 0);
   constant mem : rom := (
@@ -52,18 +50,33 @@ architecture arch of dice is
     "0000010"  -- 6
   );
 begin
-  process(clk)
+  process(clk, reset)
   begin
-    if rising_edge(clk) then
+    if reset = '1' then
+      value    <= (others => '0');
+      seg_sync <= (others => '0');
+    elsif rising_edge(clk) then
       if roll = '1' then
-        value <= value + to_unsigned(1, 4);
+        if fake = '1' then
+          if value = to_unsigned(7, 4) then
+            value <= (others => '0');
+          else
+            value <= value + 1;
+          end if;
+        else
+          if value = to_unsigned(5, 4) then
+            value <= (others => '0');
+          else
+            value <= value + 1;
+          end if;
+        end if;
       end if;
-    end if;
-    if fake = '1' then
+      if fake = '1' then
         seg_sync <= fake_mem(to_integer(value));
-      elsif fake = '0' then
+      else
         seg_sync <= mem(to_integer(value));
       end if;
+    end if;
   end process;
   seg <= seg_sync;
   dp  <= '1';  -- Ingen punkt
