@@ -24,10 +24,10 @@ architecture rtl of timer is
   -- signals etc
     -- Synkroniserade insignaler
     signal s_sync    : std_logic;
-    signal alarm_sync: std_logic;
 
+    signal alarm_sync: std_logic;
     signal run   : std_logic;
-    signal count : unsigned(3 downto 0) := (others => '0'); -- R�knarens v�rde
+    signal count : unsigned(3 downto 0) := (others => '0'); -- Räknarens värde
 
   -- 7-segments avkodning, segments t�nds med 0
   type rom is array (0 to 8) of std_logic_vector(6 downto 0);
@@ -40,7 +40,7 @@ architecture rtl of timer is
     "0010010", -- 5
     "0000010", -- 6
     "1111000", -- 7
-    "0000000" -- 8
+    "0000000"  -- 8
   );
 
 begin
@@ -55,11 +55,19 @@ begin
   begin
     if reset = '1' then
       run <= '0';
+      alarm_sync <= '1';
+      count      <= (others => '0');
+
     elsif rising_edge(clk) then
+
       if s_sync = '1' and run = '0' then  --count = to_unsigned(0, 4) 
         run <= '1';
+        count      <= to_unsigned(8,4);
+        alarm_sync <= '0';
+
       elsif run = '1' and count /= to_unsigned(0, 4) then
         count <= count - to_unsigned(1, 4);
+
       elsif run = '1' and count = to_unsigned(0, 4) then
         alarm_sync <= '1';
         run <= '0';
@@ -68,7 +76,6 @@ begin
   end process;
   seg <= mem(to_integer(count));
   dp  <= '1';  -- Ingen punkt
-  an  <= "1110";  -- V�lj sista siffran
+  an  <= "1110";  -- Välj sista siffran
   alarm <= alarm_sync;
-
 end architecture;
