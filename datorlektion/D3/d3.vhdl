@@ -31,63 +31,43 @@ architecture behav of d3 is
     signal r_sec_tens : integer range 0 to 5 := 0;
     signal r_min_ones : integer range 0 to 9 := 0;
 
-    signal carry_sec_ones : std_logic := '0';
-    signal carry_sec_tens : std_logic := '0'; 
-
 begin
+    process(clk, reset)
+        variable sec_ones_v : integer range 0 to 9;
+        variable sec_tens_v : integer range 0 to 5;
+        variable min_ones_v : integer range 0 to 9;
+    begin
+        if reset = '1' then
+            sec_ones_v := 0;
+            sec_tens_v := 0;
+            min_ones_v := 0;
 
--- Sec ones
-process(clk, reset)
-begin
-    if reset = '1' then
-        r_sec_ones     <= 0;
-        carry_sec_ones <= '0';
-    elsif rising_edge(clk) then
-        if r_sec_ones = 9 then
-            r_sec_ones     <= 0;
-            carry_sec_ones <= '1';
-        else
-            r_sec_ones     <= r_sec_ones + 1;
-            carry_sec_ones <= '0';
-        end if;
-    end if;
-end process;
+        elsif rising_edge(clk) then
+            sec_ones_v := r_sec_ones;
+            sec_tens_v := r_sec_tens;
+            min_ones_v := r_min_ones;
 
--- Sec tens
-process(clk, reset)
-begin
-    if reset = '1' then
-        r_sec_tens     <= 0;
-        carry_sec_tens <= '0';
-    elsif rising_edge(clk) then
-        if carry_sec_ones = '1' then
-            if r_sec_tens = 5 then
-                r_sec_tens     <= 0;
-                carry_sec_tens <= '1';
+            if sec_ones_v = 9 then
+                sec_ones_v := 0;
+                if sec_tens_v = 5 then
+                    sec_tens_v := 0;
+                    if min_ones_v = 9 then
+                        min_ones_v := 0;
+                    else
+                        min_ones_v := min_ones_v + 1;
+                    end if;
+                else
+                    sec_tens_v := sec_tens_v + 1;
+                end if;
             else
-                r_sec_tens     <= r_sec_tens + 1;
-                carry_sec_tens <= '0';
+                sec_ones_v := sec_ones_v + 1;
             end if;
         end if;
-    end if;
-end process;
-
--- Minutes
-process(clk, reset)
-begin
-    if reset = '1' then
-        r_min_ones <= 0;
-    elsif rising_edge(clk) then
-        if carry_sec_tens = '1' then
-            if r_min_ones = 9 then
-                r_min_ones <= 0;
-            else
-                r_min_ones <= r_min_ones + 1;
-            end if;
-        end if;
-    end if;
-end process;
-
+        
+        r_sec_ones <= sec_ones_v;
+        r_sec_tens <= sec_tens_v;
+        r_min_ones <= min_ones_v;
+    end process;
     sec_ones_7seg <= mem(r_sec_ones);
     sec_tens_7seg <= mem(r_sec_tens);
     min_ones_7seg <= mem(r_min_ones);
