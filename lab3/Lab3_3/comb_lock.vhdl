@@ -27,27 +27,27 @@ architecture rtl of comb_lock is
 begin
   
 -- Synkronisera Insignaler
-  process (clk)
+  process(clk)
   begin
     if rising_edge(clk) then
-      x0_sync <= x0;
-      x1_sync <= x1;
+        x0_sync <= x0;
+        x1_sync <= x1;
+    end if;
+  end process;
+
+
+  process (clk, reset)
+  begin
+    if reset = '1' then
+        q0 <= '0';
+        q1 <= '0';
+    elsif rising_edge(clk) then
       q0 <= q0_plus;
       q1 <= q1_plus;
     end if;
   end process;
-
-  process(clk, reset)
-  begin
-    if reset = '1' then
-      q0_plus <= '0';
-      q1_plus <= '0';
-    elsif rising_edge(clk) then
-      q0_plus <= not(not(q1 and x1_sync and x0_sync)and not(not(x1_sync) and not(x0_sync)) and not(q1 and q0));
-      q1_plus <= not(not(not(x1_sync) and x0_sync and q0) and not(x0_sync and q1) and not(x1_sync and q1 and x0_sync));
-    end if;
-  end process;
-
+  q1_plus <= (not(x1_sync) and x0_sync and q0) or (x0_sync and q1) or (x1_sync and q1 and q0);
+  q0_plus <= (q1 and x1_sync and x0_sync) or (not(x1_sync) and not(x0_sync)) or (q1 and q0);
 -- Utsignaler
   u <= (q1 and q0);
 end architecture;
